@@ -1,0 +1,32 @@
+ARG FRRVER=frr-stable
+ARG DEBIAN_RELEASE=bookworm
+
+FROM lsiobase/debian:${DEBIAN_RELEASE}
+
+LABEL maintainer Sam Burney <sburney@sifnt.net.au>
+
+# Add FRR repo
+ARG FRRVER
+ARG DEBIAN_RELEASE
+RUN curl -s https://deb.frrouting.org/frr/keys.gpg | tee /usr/share/keyrings/frrouting.gpg > /dev/null && \
+    echo deb '[signed-by=/usr/share/keyrings/frrouting.gpg]' https://deb.frrouting.org/frr \
+    ${DEBIAN_RELEASE} ${FRRVER} | tee -a /etc/apt/sources.list.d/frr.list
+
+# Install packages
+RUN apt-get update && \
+    apt-get install -y busybox frr && \
+    apt-get dist-upgrade && \
+    apt-get clean
+
+# Set up busybox
+RUN mkdir -p /usr/local/busybox/bin && \
+    busybox --install /usr/local/busybox/bin && \
+    echo 'PATH="$PATH:/usr/local/busybox/bin"' >> /etc/bash.bashrc && \
+    apt-get clean
+
+# Install tailscale
+RUN curl -fsSL https://tailscale.com/install.sh | sh
+
+ADD /root /
+
+VOLUME ["/var/lib/tailscale", "/etc/frr"]

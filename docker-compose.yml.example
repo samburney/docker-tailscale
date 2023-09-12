@@ -1,0 +1,32 @@
+services:
+  tailscale:
+    image: 'local/tailscale:latest'
+    restart: 'unless-stopped'
+    hostname: '172msa-dc1-tailscale1'
+    build:
+      context: '.'
+      dockerfile: Dockerfile.debian
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    environment:
+      - FRR_DAEMONS=bgpd
+    volumes:
+      - '/dev/net/tun:/dev/net/tun'
+      - './data/tailscale:/var/lib/tailscale'
+      - './data/frr:/etc/frr'
+    networks:
+      default:
+        ipv4_address: '10.0.0.2'
+
+networks:
+  default:
+    enable_ipv6: true
+    ipam:
+      driver: 'default'
+      config:
+        - subnet: '2001:0db8:1:2::/64'
+          gateway: '2001:0db8:1:2::1'
+        - subnet: '10.0.0.0/30'
+          gateway: '10.0.0.1'

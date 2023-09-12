@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bash
+
+# Start FRR
+echo Starting FRR...
+
+## Add tailscale route table to VRF
+/sbin/ip link add tailscale type vrf table 52
+/sbin/ip link set dev tailscale up
+
+## Copy default config if it doesn't exist
+if [ ! -f /etc/frr/daemons ] ; then
+  cp /usr/lib/frr/daemons /etc/frr/
+fi
+if [ ! -f /etc/frr/vtysh.conf ] ; then
+  cp /usr/lib/frr/vtysh.conf /etc/frr/
+fi
+
+## Create directories and set permissions
+mkdir /var/run/frr
+chown -R :frr /var/run/frr /etc/frr
+chmod -R g+w /var/run/frr /etc/frr
+
+## Start FRR Daemon itself
+exec \
+    /usr/lib/frr/watchfrr zebra ${FRR_DAEMONS} staticd
+
+exit 1
