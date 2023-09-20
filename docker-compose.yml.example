@@ -2,7 +2,7 @@ services:
   tailscale:
     image: 'local/tailscale:latest'
     restart: 'unless-stopped'
-    hostname: '172msa-dc1-tailscale1'
+    hostname: 'tailscale1'
     build:
       context: '.'
       dockerfile: Dockerfile.debian
